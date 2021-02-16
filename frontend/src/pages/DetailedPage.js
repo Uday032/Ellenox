@@ -1,9 +1,10 @@
 import React, { Component } from 'react'
-import {Button, CardColumns} from 'react-bootstrap'
+import {Button, CardColumns, Row, Col} from 'react-bootstrap'
 import NewsCard from '../components/NewsHeadlineCard'
 import { Redirect } from 'react-router-dom'
 import {instance, coingekoinstance, newsapi} from '../axios';
 import {Line} from 'react-chartjs-2'
+import ReactSelect from '../components/ReactSelect'
 
 function convertEpochToSpecificTimezone(unixtime){
     var s = new Date(unixtime)
@@ -11,17 +12,42 @@ function convertEpochToSpecificTimezone(unixtime){
     return humanDateFormat;
 }
 
+const daysoptions = [
+    {
+        value: 1,
+        label: "1 day"
+    },
+    {
+        value: 7,
+        label: "7 days"
+    },
+    {
+        value: 14,
+        label: "14 days"
+    },
+    {
+        value: 20,
+        label: "20 days"
+    },
+    {
+        value: 90,
+        label: "90 days"
+    },
+]
 export default class DetailedPage extends Component {
     constructor(){
         super();
 
         this.handleLogout = this.handleLogout.bind(this);
+        this.Changedays = this.Changedays.bind(this);
 
         this.state = {
             username: '',
             news: [],
             news_status: '',
             currencyprice: '',
+            days: 1,
+            selecteddays: '1 day',
             chartpoints:{
                             labels: [],
                             datasets: [
@@ -114,6 +140,33 @@ export default class DetailedPage extends Component {
         return <Redirect to='/' />
     }
 
+    Changedays = selecteddays => {
+        this.setState({selecteddays})
+        this.setState({
+            days: Number(selecteddays.value)
+        })
+
+        let charturl = '/coins/'+this.props.match.params.coin_name+'/market_chart/';
+
+        coingekoinstance.get(charturl, {
+                    params: {
+                        vs_currency: 'inr',
+                        days: Number(selecteddays.value)
+                    }  
+                })
+                .then((res)=> {
+                    
+                    const data = {...this.state.chartpoints.datasets[0], data: res.data.prices.map((price)=>{return(price[1]);})};
+                    const newchart = {...this.state.chartpoints, labels: res.data.prices.map((price) => {
+                        return (convertEpochToSpecificTimezone(price[0]));
+                    }), datasets: [data]};
+
+                    this.setState({
+                        chartpoints: newchart
+                    })
+                });
+    }
+
     render() {
         if(this.state.logged_in===false) {
             return <Redirect to='/' />
@@ -168,7 +221,20 @@ export default class DetailedPage extends Component {
                             />
                     </div>
                 </div>
-
+                <div className="mt-5">
+                    <Row>
+                        <Col md="3">
+                            <h5>Change Timeline:</h5>
+                            <ReactSelect 
+                                options= {daysoptions}
+                                selectedOption = {this.state.selecteddays}
+                                handleChange = {this.Changedays}
+                            />
+                        </Col>
+                    </Row>
+                    
+                    {/* <Button variant="primary" onClick={this.Changedays}>7 Days</Button>{' '} */}
+                </div>
                 <div className="mt-4">
                     <h4 className="text-center">News</h4>
                     
