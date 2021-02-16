@@ -1,8 +1,8 @@
 import React, { Component } from 'react'
-import {Button} from 'react-bootstrap'
+import {Button, CardColumns} from 'react-bootstrap'
 import NewsCard from '../components/NewsHeadlineCard'
 import { Redirect } from 'react-router-dom'
-import {instance, coingekoinstance} from '../axios';
+import {instance, coingekoinstance, newsapi} from '../axios';
 import {Line} from 'react-chartjs-2'
 
 function convertEpochToSpecificTimezone(unixtime){
@@ -19,6 +19,9 @@ export default class DetailedPage extends Component {
 
         this.state = {
             username: '',
+            news: [],
+            news_status: '',
+            currencyprice: '',
             chartpoints:{
                             labels: [],
                             datasets: [
@@ -66,6 +69,40 @@ export default class DetailedPage extends Component {
                         chartpoints: newchart
                     })
                 });
+        
+        let coinpriceurl = '/simple/price';
+        coingekoinstance.get(coinpriceurl, {
+                    params: {
+                        ids: this.props.match.params.coin_name,
+                        vs_currencies: 'inr'
+                    }  
+                })
+                .then((res) => {
+                    console.log(res);
+                    var name = this.props.match.params.coin_name
+                    this.setState({
+                        currencyprice: res.data[name].inr
+                    })
+                })
+
+        newsapi.get('/top-headlines', {
+                    params: {
+                        q: this.props.match.params.coin_name,
+                        apiKey: '4fd572ba75324d3483a269128c87730f'
+                    }
+                })
+                .then((res) => {
+                    if(res.data.articles.length) {
+                        this.setState({
+                            news: res.data.articles
+                        })
+                    }
+                    else {
+                        this.setState({
+                            news_status: 'No News available'
+                        })
+                    }
+                })
 
     }
 
@@ -96,7 +133,7 @@ export default class DetailedPage extends Component {
 
                 <div className="mt-4" style={{clear: 'both'}}>
                     <div>
-                        <span className="h4">{this.props.match.params.coin_name}:</span> $38,00
+                        <span className="h4">{this.props.match.params.coin_name}:</span> INR {this.state.currencyprice}
                     </div>
                     <div>
                         <Line
@@ -134,7 +171,23 @@ export default class DetailedPage extends Component {
 
                 <div className="mt-4">
                     <h4 className="text-center">News</h4>
-                    <NewsCard />
+                    
+                    <div className="mt-5">
+                        <span className="text-danger">{this.state.news_status}</span>
+                        <CardColumns>
+                            {
+                                this.state.news.map((post) => 
+                                    <NewsCard 
+                                        image = {post.urlToImage}
+                                        title = {post.title}
+                                        description = {post.description}
+                                        author = {post.author}
+                                        redirecturl= {post.url}
+                                    />
+                                )
+                            }
+                        </CardColumns>
+                    </div>
                 </div>
             </div>
         )
