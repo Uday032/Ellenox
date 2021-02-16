@@ -1,10 +1,10 @@
 import React, { Component } from 'react'
 
-export default class Chart extends Component {
+export default class DetailedCoin extends Component {
     render() {
         return (
             <div>
-                Chart
+                
             </div>
         )
     }

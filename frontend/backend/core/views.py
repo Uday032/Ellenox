@@ -25,10 +25,8 @@ class CurrentUser(APIView):
     def get(self, request, format=None):
         token = request.META['HTTP_AUTHORIZATION']
         token = token.split(' ')[1]
-        print(token)
         jwt_decode_handler = api_settings.JWT_DECODE_HANDLER
         data = jwt_decode_handler(token)
-        print(data)
         return Response(data)
 
 
