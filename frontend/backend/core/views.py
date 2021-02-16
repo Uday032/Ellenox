@@ -73,7 +73,11 @@ class CryptoWatchListViewSet(APIView):
     permission_classes = (permissions.AllowAny,)
 
     def get(self, request, format=None):
-        cryptos = CryptoWatchList.objects.all()
+        token = request.META['HTTP_AUTHORIZATION']
+        token = token.split(' ')[1]
+        jwt_decode_handler = api_settings.JWT_DECODE_HANDLER
+        data = jwt_decode_handler(token)    
+        cryptos = CryptoWatchList.objects.filter(userid=data["user_id"])
         serializer = CryptoWatchListSerializer(cryptos, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
