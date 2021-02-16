@@ -67,7 +67,7 @@ export default class WatchList extends Component {
                                     labels: Array.from(Array(res.data[0].sparkline_in_7d.price.length).keys()),
                                     datasets: [
                                         {
-                                            label: 'Rainfall',
+                                            label: 'Price',
                                             backgroundColor: 'rgba(255,255,255,1)',
                                             borderColor: 'rgba(0,0,0,1)',
                                             borderWidth: 1,
@@ -211,7 +211,7 @@ export default class WatchList extends Component {
                                                         {
                                                             title:{
                                                             display:false,
-                                                            text:'Average Rainfall per month',
+                                                            text:'Cypto Price',
                                                             fontSize:20
                                                         },
                                                         legend:{
